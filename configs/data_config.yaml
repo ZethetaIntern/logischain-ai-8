@@ -1,0 +1,119 @@
+data_sources:
+  comtrade:
+    base_url: "https://comtradeapi.un.org/data/v1/get"
+    format: json
+    freq: M
+    years: [2019, 2020, 2021, 2022, 2023, 2024]
+    commodity_codes: ["85", "84", "87", "30", "10"]
+  world_bank:
+    base_url: "https://api.worldbank.org/v2/country"
+    indicators:
+      - NE.EXP.GNFS.ZS
+      - NE.IMP.GNFS.ZS
+      - FP.CPI.TOTL.ZG
+      - NY.GDP.MKTP.CD
+  synthetic:
+    n_carriers: 500
+    n_shipments: 50000
+    n_routes: 200
+    time_periods: 730
+
+train_test_split:
+  test_size: 0.2
+  val_size: 0.1
+  stratify: true
+  time_based: true
+  cutoff_date: "2023-06-01"
+
+supply_chain_features:
+  network_features:
+    - degree_centrality
+    - betweenness_centrality
+    - eigenvector_centrality
+    - clustering_coefficient
+    - shortest_path_avg
+    - network_density
+    - hub_score
+    - authority_score
+  shipment_features:
+    - transit_time_days
+    - on_time_delivery_rate
+    - damage_rate
+    - cost_per_kg
+    - volume_weight_ratio
+    - route_reliability_score
+    - carrier_utilization_rate
+    - port_congestion_index
+  demand_features:
+    - demand_volatility_30d
+    - demand_volatility_90d
+    - demand_trend_slope
+    - seasonal_index
+    - forecast_error_mape
+    - stockout_frequency
+    - inventory_turnover
+    - days_of_supply
+  disruption_features:
+    - weather_risk_index
+    - geopolitical_risk_score
+    - port_strike_probability
+    - pandemic_exposure_index
+    - tariff_change_indicator
+    - supplier_concentration_ratio
+    - single_source_dependency
+
+financial_features:
+  trade_finance:
+    - lc_utilization_rate
+    - documentary_credit_amount
+    - payment_terms_days
+    - discount_rate
+    - forfeiting_spread
+    - factoring_advance_rate
+    - insurance_premium_rate
+    - fx_exposure_usd
+  working_capital:
+    - days_sales_outstanding
+    - days_payable_outstanding
+    - days_inventory_outstanding
+    - cash_conversion_cycle
+    - working_capital_ratio
+    - quick_ratio
+    - current_ratio
+    - net_working_capital_usd
+  credit_risk:
+    - altman_z_score
+    - debt_to_equity_ratio
+    - interest_coverage_ratio
+    - free_cash_flow_yield
+    - default_probability
+    - credit_spread_bps
+    - rating_score
+    - leverage_ratio
+
+fusion_features:
+  cross_domain:
+    - supply_chain_risk_adjusted_cost_of_capital
+    - logistics_disruption_credit_impact_score
+    - carrier_reliability_payment_risk_index
+    - inventory_risk_working_capital_multiplier
+    - route_concentration_credit_exposure
+    - demand_volatility_cash_conversion_impact
+    - disruption_probability_default_correlation
+    - network_centrality_counterparty_risk_score
+  derived:
+    - logischain_composite_risk_score
+    - supply_chain_financial_stress_index
+    - carrier_credit_quality_index
+    - trade_route_value_at_risk
+
+preprocessing:
+  numeric_imputation: median
+  categorical_imputation: mode
+  scaling: robust
+  outlier_method: iqr
+  outlier_threshold: 3.0
+  encoding: label
+  datetime_features: true
+  lag_windows: [7, 14, 30, 60, 90]
+  rolling_windows: [7, 30, 90]

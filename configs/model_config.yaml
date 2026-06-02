@@ -1,0 +1,113 @@
+gnn:
+  layers: 3
+  heads: 4
+  hidden_dim: 128
+  dropout: 0.2
+  activation: relu
+  aggregation: mean
+  edge_types:
+    - supplier_to_manufacturer
+    - manufacturer_to_distributor
+    - distributor_to_retailer
+    - port_to_port
+  node_features: 64
+  edge_features: 32
+  readout: global_mean_pool
+  lr: 0.001
+  weight_decay: 1.0e-4
+
+tcn:
+  input_chunk_length: 128
+  output_chunk_length: 30
+  num_filters: 64
+  kernel_size: 3
+  dilation_base: 2
+  num_layers: 4
+  dropout: 0.1
+  batch_size: 64
+  n_epochs: 100
+  lr: 0.001
+  optimizer: adam
+
+transformer:
+  d_model: 256
+  nhead: 8
+  num_encoder_layers: 4
+  num_decoder_layers: 4
+  dim_feedforward: 1024
+  dropout: 0.1
+  max_seq_len: 512
+  input_chunk_length: 128
+  output_chunk_length: 30
+  batch_size: 32
+  n_epochs: 80
+  lr: 5.0e-4
+
+xgboost:
+  n_estimators: 800
+  max_depth: 6
+  learning_rate: 0.02
+  subsample: 0.8
+  colsample_bytree: 0.8
+  min_child_weight: 5
+  reg_alpha: 0.1
+  reg_lambda: 1.0
+  gamma: 0.05
+  eval_metric: logloss
+  use_label_encoder: false
+  tree_method: hist
+  early_stopping_rounds: 50
+
+lightgbm:
+  n_estimators: 800
+  max_depth: 7
+  learning_rate: 0.02
+  num_leaves: 63
+  subsample: 0.8
+  colsample_bytree: 0.8
+  min_child_samples: 20
+  reg_alpha: 0.1
+  reg_lambda: 1.0
+  early_stopping_rounds: 50
+
+survival:
+  model: cox_ph
+  penalizer: 0.1
+  l1_ratio: 0.0
+  duration_col: carrier_tenure_days
+  event_col: carrier_failure
+  baseline_estimation: breslow
+  confidence_intervals: true
+  alpha: 0.05
+
+ensemble:
+  method: stacking
+  meta_learner: logistic_regression
+  base_models:
+    - gnn
+    - xgboost
+    - lightgbm
+    - survival
+  weights:
+    gnn: 0.35
+    xgboost: 0.30
+    lightgbm: 0.25
+    survival: 0.10
+  cross_val_folds: 5
+
+optuna:
+  n_trials: 100
+  timeout: 3600
+  sampler: TPESampler
+  pruner: HyperbandPruner
+  direction: maximize
+  metric: roc_auc
+
+mlflow:
+  experiment_name: logischain_ai
+  run_name_prefix: logischain
+  log_models: true
+  log_artifacts: true
+  tags:
+    project: logischain-ai
+    team: zetheta-algorithms

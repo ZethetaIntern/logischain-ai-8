@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: logischain_app
+    ports:
+      - "8501:8501"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - DATA_PATH=/app/data
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./mlruns:/app/mlruns
+    depends_on:
+      - mlflow
+    restart: unless-stopped
+    networks:
+      - logischain_net
+
+  mlflow:
+    image: python:3.10-slim
+    container_name: logischain_mlflow
+    command: >
+      bash -c "pip install mlflow && mlflow server
+        --host 0.0.0.0
+        --port 5000
+        --backend-store-uri sqlite:///mlruns/mlflow.db
+        --default-artifact-root /mlruns/artifacts"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns
+    networks:
+      - logischain_net
+    restart: unless-stopped
+
+networks:
+  logischain_net:
+    driver: bridge
